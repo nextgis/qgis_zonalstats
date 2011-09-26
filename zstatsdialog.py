@@ -99,4 +99,7 @@ class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
     self.leReportFile.setText( fileName )
 
   def accept( self ):
-    pass
+    vLayer = utils.getVectorLayerByName( self.cmbVectorLayer.currentText() )
+    memLayer = utils.loadInMemory( vLayer )
+    # for testing
+    QgsMapLayerRegistry.instance().addMapLayer( memLayer )

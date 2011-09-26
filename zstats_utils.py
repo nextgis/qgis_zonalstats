@@ -73,6 +73,32 @@ def getFieldList( vLayer ):
   vProvider = vLayer.dataProvider()
   return vProvider.fields()
 
+def loadInMemory( vLayer ):
+  crs = vLayer.crs().authid().toLower()
+  uri = "Polygon?crs=" + crs + "&index=yes"
+  mLayer = QgsVectorLayer( uri, "temp_poly", "memory" )
+  mProvider = mLayer.dataProvider()
+
+  vProvider = vLayer.dataProvider()
+  allAttrs = vProvider.attributeIndexes()
+  allFields = vLayer.dataProvider().fields()
+
+  fields = []
+  for i in allFields:
+    fields.append( allFields[ i ] )
+
+  mProvider.addAttributes( fields )
+
+  vProvider.select( allAttrs )
+  ft = QgsFeature()
+  while vProvider.nextFeature( ft ):
+    mProvider.addFeatures( [ ft ] )
+
+  # FIXME: maybe this is not necessary and can be removed
+  mLayer.startEditing()
+  mLayer.commitChanges()
+  return mLayer
+
 def lastUsedDir():
   settings = QSettings( "NextGIS", "zstats" )
   return settings.value( "lastUsedDir", QVariant( "" ) ).toString()
