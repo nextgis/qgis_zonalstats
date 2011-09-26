@@ -99,7 +99,16 @@ class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
     self.leReportFile.setText( fileName )
 
   def accept( self ):
+    # check input parameters
+    rasterPath = utils.getRasterLayerByName( self.cmbRasterLayer.currentText() ).source()
     vLayer = utils.getVectorLayerByName( self.cmbVectorLayer.currentText() )
+    prefix = self.leColumnPrefix.text()
+
     memLayer = utils.loadInMemory( vLayer )
     # for testing
     QgsMapLayerRegistry.instance().addMapLayer( memLayer )
+
+    # calculate zonal statistics
+    zs = QgsZonalStatistics( memLayer, rasterPath, prefix )
+    pd = QProgressDialog( self.tr( "Calculating zonal statistics" ), self.tr( "Abort..." ), self, 0 )
+    zs.calculateStatistics( pd )
