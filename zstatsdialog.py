@@ -97,3 +97,6 @@ class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
       fileName += ".html"
 
     self.leReportFile.setText( fileName )
+
+  def accept( self ):
+    pass

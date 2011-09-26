@@ -57,7 +57,7 @@ def getVectorLayersNames():
   layerList = []
   layerMap = QgsMapLayerRegistry.instance().mapLayers()
   for name, layer in layerMap.iteritems():
-    if layer.type() == QgsMapLayer.VectorLayer:
+    if layer.type() == QgsMapLayer.VectorLayer and layer.geometryType() == QGis.Polygon:
       layerList.append( unicode( layer.name() ) )
   return layerList
 
