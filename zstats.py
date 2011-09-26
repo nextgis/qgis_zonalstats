@@ -75,10 +75,10 @@ class ZStatsPlugin( object ):
                            QCoreApplication.translate( "ZStats", "This version of ZStats requires at least QGIS version 1.0.0\nPlugin will not be enabled." ) )
       return None
 
-    self.actionRun = QAction( QIcon( ":/zstats.png" ), "ZStats", self.iface.mainWindow() )
+    self.actionRun = QAction( QIcon( ":icons/zstats.png" ), "ZStats", self.iface.mainWindow() )
     self.actionRun.setStatusTip( QCoreApplication.translate( "ZStats", "Extended zonal statistics and report generation" ) )
     self.actionRun.setWhatsThis( QCoreApplication.translate( "ZStats", "Extended zonal statistics" ) )
-    self.actionAbout = QAction( QIcon( ":/about.png" ), "About", self.iface.mainWindow() )
+    self.actionAbout = QAction( QIcon( ":icons/about.png" ), "About", self.iface.mainWindow() )
 
     QObject.connect( self.actionRun, SIGNAL( "triggered()" ), self.run )
     QObject.connect( self.actionAbout, SIGNAL( "triggered()" ), self.about )

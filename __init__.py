@@ -43,7 +43,7 @@ def authorName():
 	return "Alexander Bruy"
 
 def icon():
-	return "zstats.png"
+	return "icons/zstats.png"
 
 def classFactory( iface ):
 	from zstats import ZStatsPlugin
