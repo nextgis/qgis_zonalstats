@@ -33,9 +33,9 @@ from qgis.gui import *
 
 import zstats_utils as utils
 
-from ui_zstatsdialogbase import Ui_ZStatsDialog
+from ui_zstatsdialogbase import Ui_ZStatsDialogBase
 
-class ZStatsDialog( QDialog, Ui_ZStatsDialog ):
+class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
   def __init__( self, iface ):
     QDialog.__init__( self )
     self.setupUi( self )
@@ -44,8 +44,56 @@ class ZStatsDialog( QDialog, Ui_ZStatsDialog ):
     self.okButton = self.buttonBox.button( QDialogButtonBox.Ok )
     self.closeButton = self.buttonBox.button( QDialogButtonBox.Close )
 
+    QObject.connect( self.cmbVectorLayer, SIGNAL( "currentIndexChanged( QString )" ), self.updateFieldList )
+    QObject.connect( self.chkGroupZones, SIGNAL( "stateChanged( int )" ), self.updateGrouping )
+    QObject.connect( self.chkWriteReport, SIGNAL( "stateChanged( int )" ), self.updateReport )
+    QObject.connect( self.btnBrowse, SIGNAL( "clicked()" ), self.selectReportFile )
+
     self.manageGui()
 
   def manageGui( self ):
+    # disable some controls by default
+    self.cmbGroupField.setEnabled( False )
+    self.leReportFile.setEnabled( False )
+    self.btnBrowse.setEnabled( False )
+
     self.cmbRasterLayer.addItems( utils.getRasterLayersNames() )
     self.cmbVectorLayer.addItems( utils.getVectorLayersNames() )
+
+  def updateFieldList( self, layerName ):
+    self.cmbGroupField.clear()
+    vLayer = utils.getVectorLayerByName( layerName )
+    fields = utils.getFieldList( vLayer )
+    for i in fields:
+      if fields[ i ].type() in [ QVariant.Int, QVariant.String ]:
+        self.cmbGroupField.addItem( fields[ i ].name() )
+
+  def updateGrouping( self, state ):
+    if state == Qt.Checked:
+      self.cmbGroupField.setEnabled( True )
+    else:
+      self.cmbGroupField.setEnabled( False )
+
+  def updateReport( self, state ):
+    if state == Qt.Checked:
+      self.leReportFile.setEnabled( True )
+      self.btnBrowse.setEnabled( True )
+    else:
+      self.leReportFile.setEnabled( False )
+      self.btnBrowse.setEnabled( False )
+
+  def selectReportFile( self ):
+    lastUsedDir = utils.lastUsedDir()
+    fileName = QFileDialog.getSaveFileName( self, self.tr( "Save report" ),
+               lastUsedDir, "HTML files (*.html *.HTML *.htm *.HTM)" )
+
+    if fileName.isEmpty():
+      return
+
+    utils.setLastUsedDir( fileName )
+
+    # ensure the user never ommited the extension from the file name
+    if ( not fileName.toLower().endsWith( ".htm" ) ) and ( not fileName.toLower().endsWith( ".html" ) ):
+      fileName += ".html"
+
+    self.leReportFile.setText( fileName )

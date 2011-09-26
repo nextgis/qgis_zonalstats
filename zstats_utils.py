@@ -69,6 +69,9 @@ def getRasterLayersNames():
         layerList.append( unicode( layer.name() ) )
   return layerList
 
+def getFieldList( vLayer ):
+  vProvider = vLayer.dataProvider()
+  return vProvider.fields()
 
 def lastUsedDir():
   settings = QSettings( "NextGIS", "zstats" )
