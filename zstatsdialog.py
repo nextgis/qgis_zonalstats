@@ -127,11 +127,14 @@ class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
     pd = QProgressDialog( self.tr( "Calculating zonal statistics" ), self.tr( "Abort..." ), 0, 0 )
     zs.calculateStatistics( pd )
 
-    # save statistics to file near the input shapefile
+    # save full statistics to file near the input shapefile
     fi = QFileInfo( vLayer.source() )
-    fPath = fi.path() + "/" + fi.completeBaseName() + ".csv"
+    fPath = fi.path() + "/" + fi.completeBaseName() + "_full_stat.csv"
     utils.saveStatsToCSV( memLayer, fPath )
 
     # generate report if necessary
     if self.chkWriteReport.isChecked():
-      pass
+      if self.chkGroupZones.isChecked():
+        pass
+      else:
+        pass
