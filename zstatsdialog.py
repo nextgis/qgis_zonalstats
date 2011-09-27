@@ -132,9 +132,19 @@ class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
     fPath = fi.path() + "/" + fi.completeBaseName() + "_full_stat.csv"
     utils.saveStatsToCSV( memLayer, fPath )
 
+    memProvider = memLayer.dataProvider()
+
     # generate report if necessary
     if self.chkWriteReport.isChecked():
       if self.chkGroupZones.isChecked():
-        pass
+        # get field index
+        index = 0
+        for k, v in memProvider.fields():
+          if v.name() == self.cmbGroupField.currentText():
+            index = k
+            break
+
+        # get unique values
+        uniqueValues = memProvider.uniqueValues( index )
       else:
         pass
