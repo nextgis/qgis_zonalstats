@@ -99,6 +99,34 @@ def loadInMemory( vLayer ):
   mLayer.commitChanges()
   return mLayer
 
+def saveStatsToCSV( mLayer, filePath ):
+  mProvider = mLayer.dataProvider()
+  allAttrs = mProvider.attributeIndexes()
+  mProvider.rewind()
+  mProvider.select( allAttrs )
+
+  f = open( filePath, "wb" )
+  writer = csv.writer( f )
+
+  # first create column names
+  row = []
+  fields = mProvider.fields()
+  for k, v in fields.iteritems():
+    row.append( v.name() )
+  writer.writerow( row )
+
+  # now write data
+  row = []
+  feat = QgsFeature()
+  while mProvider.nextFeature( feat ):
+    attrMap = feat.attributeMap()
+    for index, value in attrMap.iteritems():
+      row.append( unicode( value.toString() ) )
+    writer.writerow( row )
+    row = []
+
+  f.close()
+
 def lastUsedDir():
   settings = QSettings( "NextGIS", "zstats" )
   return settings.value( "lastUsedDir", QVariant( "" ) ).toString()

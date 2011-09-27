@@ -101,15 +101,37 @@ class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
 
   def accept( self ):
     # check input parameters
+    if self.cmbRasterLayer.currentIndex() == -1:
+      QMessageBox.warning( self, self.tr( "ZStats: Warning" ),
+                           self.tr( "Please select raster layer to analyse" ) )
+      return
+
+    if self.cmbVectorLayer.currentIndex()  == -1:
+      QMessageBox.warning( self, self.tr( "ZStats: Warning" ),
+                           self.tr( "Please select vector layer to analyse" ) )
+      return
+
+    # TODO: check attribute prefix
+
     rasterPath = utils.getRasterLayerByName( self.cmbRasterLayer.currentText() ).source()
     vLayer = utils.getVectorLayerByName( self.cmbVectorLayer.currentText() )
     prefix = self.leColumnPrefix.text()
 
     memLayer = utils.loadInMemory( vLayer )
-    # for testing
+
+    # for testing (should be removed)
     QgsMapLayerRegistry.instance().addMapLayer( memLayer )
 
     # calculate zonal statistics
     zs = QgsZonalStatistics( memLayer, rasterPath, prefix )
     pd = QProgressDialog( self.tr( "Calculating zonal statistics" ), self.tr( "Abort..." ), 0, 0 )
     zs.calculateStatistics( pd )
+
+    # save statistics to file near the input shapefile
+    fi = QFileInfo( vLayer.source() )
+    fPath = fi.path() + "/" + fi.completeBaseName() + ".csv"
+    utils.saveStatsToCSV( memLayer, fPath )
+
+    # generate report if necessary
+    if self.chkWriteReport.isChecked():
+      pass
