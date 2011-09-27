@@ -30,6 +30,7 @@ from PyQt4.QtGui import *
 
 from qgis.core import *
 from qgis.gui import *
+from qgis.analysis import *
 
 import zstats_utils as utils
 
@@ -110,5 +111,5 @@ class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
 
     # calculate zonal statistics
     zs = QgsZonalStatistics( memLayer, rasterPath, prefix )
-    pd = QProgressDialog( self.tr( "Calculating zonal statistics" ), self.tr( "Abort..." ), self, 0 )
+    pd = QProgressDialog( self.tr( "Calculating zonal statistics" ), self.tr( "Abort..." ), 0, 0 )
     zs.calculateStatistics( pd )
