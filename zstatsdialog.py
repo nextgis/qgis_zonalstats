@@ -148,6 +148,12 @@ class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
             index = k
             break
 
+        # get statistics fields indexes
+        idx = [ memLayer.fieldNameIndex( prefix + "count" ),
+                memLayer.fieldNameIndex( prefix + "sum" ),
+                memLayer.fieldNameIndex( prefix + "mean" ) ]
+        print "IDX", idx
+
         # get unique values
         uniqueValues = memProvider.uniqueValues( index )
         allAttrs = memProvider.attributeIndexes()
@@ -159,10 +165,21 @@ class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
           sqlString = QString( fieldName + " = %1" )
 
         # create zones
+        ft = QgsFeature()
         for v in uniqueValues:
           qry = sqlString.arg( v.toString() )
           fIds = utils.searchInLayer( memLayer, qry )
           print "FOUND", len( fIds )
+          stats = [ 0, 0, 0 ]
+          for i in fIds:
+            memLayer.featureAtId( i, ft, False, True )
+            attrMap = ft.attributeMap()
+            #print "ATTRS", attrMap[ idx[0] ].toString(), attrMap[ idx[1] ].toString(), attrMap[ idx[2] ].toString()
+            stats[ 0 ] += attrMap[ idx[0] ].toInt()[ 0 ]
+            stats[ 1 ] += attrMap[ idx[1] ].toFloat()[ 0 ]
+            stats[ 2 ] += attrMap[ idx[2] ].toFloat()[ 0 ]
+          stats[ 2 ] = stats[ 2 ] / float( len( fIds ) )
+          print "STATS", stats
       else:
         pass
 
