@@ -103,7 +103,7 @@ def saveStatsToCSV( mLayer, filePath ):
   mProvider = mLayer.dataProvider()
   allAttrs = mProvider.attributeIndexes()
   mProvider.rewind()
-  mProvider.select( allAttrs )
+  mProvider.select( allAttrs, QgsRectangle(), False )
 
   f = open( filePath, "wb" )
   writer = csv.writer( f )
@@ -126,6 +126,35 @@ def saveStatsToCSV( mLayer, filePath ):
     row = []
 
   f.close()
+
+def searchInLayer( vLayer, searchString ):
+  search = QgsExpression( searchString )
+  print "SQL", searchString
+  allAttrs = vLayer.dataProvider().attributeIndexes()
+
+  if search.hasParserError():
+    #QMessageBox.critical( this, tr( "Parsing error" ), search.parserErrorString() )
+    print "Parsing error", str( search.parserErrorString() )
+    return
+
+  if not search.prepare( vLayer.pendingFields() ):
+    #QMessageBox.critical( this, tr( "Evaluation error" ), search.evalErrorString() )
+    print "Evaluation error", str( search.evalErrorString() )
+    return
+
+  vLayer.select( allAttrs, QgsRectangle(), False )
+  f = QgsFeature()
+  selectedFeatureIds = []
+  while vLayer.nextFeature( f ):
+    if search.evaluate( f ).toInt()[ 0 ] != 0:
+      selectedFeatureIds.append( f.id() )
+
+    # check if there were errors during evaluating
+    if search.hasEvalError():
+      print "Eval error during search"
+      break
+
+  return selectedFeatureIds
 
 def lastUsedDir():
   settings = QSettings( "NextGIS", "zstats" )

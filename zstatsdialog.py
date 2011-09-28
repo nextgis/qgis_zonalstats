@@ -139,12 +139,31 @@ class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
       if self.chkGroupZones.isChecked():
         # get field index
         index = 0
-        for k, v in memProvider.fields():
-          if v.name() == self.cmbGroupField.currentText():
+        isString = False
+        fieldName = self.cmbGroupField.currentText()
+        for k, v in memProvider.fields().iteritems():
+          if v.name() == fieldName:
+            if v.type() == QVariant.String :
+              isString = True
             index = k
             break
 
         # get unique values
         uniqueValues = memProvider.uniqueValues( index )
+        allAttrs = memProvider.attributeIndexes()
+
+        sqlString = None
+        if isString:
+          sqlString = QString( fieldName + " = '%1'")
+        else:
+          sqlString = QString( fieldName + " = %1" )
+
+        # create zones
+        for v in uniqueValues:
+          qry = sqlString.arg( v.toString() )
+          fIds = utils.searchInLayer( memLayer, qry )
+          print "FOUND", len( fIds )
       else:
         pass
+
+    memLayer = None
