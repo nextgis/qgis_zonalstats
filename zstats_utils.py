@@ -157,10 +157,17 @@ def searchInLayer( vLayer, searchString ):
   return selectedFeatureIds
 
 def writeReport( rptPath, rptData ):
+  fi = QFileInfo( vLayer.source() )
+  csvPath = fi.path() + "/" + fi.completeBaseName() + "_data.csv"
+
+  f = open( filePath, "wb" )
+  writer = csv.writer( f )
+  writer.writerow( [ "zone_name", "object_count", "area" ] )
+
   rpt = QString( "<html><body>" )
 
-  rpt += "<table width=\"100%\" border=\"0\">"
-  rpt += "<tr align=\"center\"><th>"
+  rpt += "<table width=\"100%\" border=\"1\">"
+  rpt += "<tr><th>"
   rpt += "Zone name"
   rpt += "</th><th>"
   rpt += "Object count"
@@ -168,15 +175,18 @@ def writeReport( rptPath, rptData ):
   rpt += "Area"
   rpt += "</th></tr>"
   for row in rptData:
-    rpt += "<tr><td>"
+    rpt += "<tr align=\"center\"><td>"
     rpt += QString( row[ 0 ] )
     rpt += "</td><td>"
     rpt += QString().setNum( row[ 1 ] )
     rpt += "</td><td>"
     rpt += QString().setNum( row[ 2 ] )
     rpt += "</td></tr>"
+    writer.writerow( row )
   rpt += "</table>"
   rpt += "</body></html>"
+
+  f.close()
 
   # write report to file
   f = QFile( rptPath )
@@ -190,6 +200,8 @@ def writeReport( rptPath, rptData ):
 
   out = QTextStream( f )
   out << rpt
+
+  return rpt
 
 def lastUsedDir():
   settings = QSettings( "NextGIS", "zstats" )

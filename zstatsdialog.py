@@ -168,5 +168,9 @@ class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
         reportData.append( stats )
 
     # save report as HTML
-    utils.writeReport( reportPath, reportData )
+    rpt = utils.writeReport( reportPath, reportData )
+
+    # display report in viewer
+    self.teReport.setHtml( rpt )
+
     memLayer = None
