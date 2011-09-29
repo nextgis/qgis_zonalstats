@@ -156,6 +156,41 @@ def searchInLayer( vLayer, searchString ):
 
   return selectedFeatureIds
 
+def writeReport( rptPath, rptData ):
+  rpt = QString( "<html><body>" )
+
+  rpt += "<table width=\"100%\" border=\"0\">"
+  rpt += "<tr align=\"center\"><th>"
+  rpt += "Zone name"
+  rpt += "</th><th>"
+  rpt += "Object count"
+  rpt += "</th><th>"
+  rpt += "Area"
+  rpt += "</th></tr>"
+  for row in rptData:
+    rpt += "<tr><td>"
+    rpt += QString( row[ 0 ] )
+    rpt += "</td><td>"
+    rpt += QString().setNum( row[ 1 ] )
+    rpt += "</td><td>"
+    rpt += QString().setNum( row[ 2 ] )
+    rpt += "</td></tr>"
+  rpt += "</table>"
+  rpt += "</body></html>"
+
+  # write report to file
+  f = QFile( rptPath )
+  if not f.open( QIODevice.WriteOnly | QIODevice.Text ):
+    #QMessageBox::warning( this, tr( "Saving shortcuts" ),
+    #                      tr( "Cannot write file %1:\n%2." )
+    #                      .arg( fileName )
+    #                      .arg( file.errorString() ) );
+    print "Cannot write file"
+    return
+
+  out = QTextStream( f )
+  out << rpt
+
 def lastUsedDir():
   settings = QSettings( "NextGIS", "zstats" )
   return settings.value( "lastUsedDir", QVariant( "" ) ).toString()

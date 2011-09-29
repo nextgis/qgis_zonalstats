@@ -47,7 +47,6 @@ class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
 
     QObject.connect( self.cmbVectorLayer, SIGNAL( "currentIndexChanged( QString )" ), self.updateFieldList )
     QObject.connect( self.chkGroupZones, SIGNAL( "stateChanged( int )" ), self.updateGrouping )
-    #QObject.connect( self.chkWriteReport, SIGNAL( "stateChanged( int )" ), self.updateReport )
     QObject.connect( self.btnBrowse, SIGNAL( "clicked()" ), self.selectReportFile )
 
     self.manageGui()
@@ -55,8 +54,6 @@ class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
   def manageGui( self ):
     # disable some controls by default
     self.cmbGroupField.setEnabled( False )
-    #self.leReportFile.setEnabled( False )
-    #self.btnBrowse.setEnabled( False )
 
     self.cmbRasterLayer.addItems( utils.getRasterLayersNames() )
     self.cmbVectorLayer.addItems( utils.getVectorLayersNames() )
@@ -111,17 +108,17 @@ class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
                            self.tr( "Please select vector layer to analyse" ) )
       return
 
-    # TODO: check attribute prefix
-
     rasterPath = utils.getRasterLayerByName( self.cmbRasterLayer.currentText() ).source()
     vLayer = utils.getVectorLayerByName( self.cmbVectorLayer.currentText() )
-    prefix = self.leColumnPrefix.text()
     reportPath = self.leReportFile.text()
 
     memLayer = utils.loadInMemory( vLayer )
 
     # for testing (should be removed)
-    QgsMapLayerRegistry.instance().addMapLayer( memLayer )
+    #QgsMapLayerRegistry.instance().addMapLayer( memLayer )
+
+    # TODO: check attribute prefix
+    prefix = ""
 
     # calculate zonal statistics
     zs = QgsZonalStatistics( memLayer, rasterPath, prefix )
@@ -136,7 +133,6 @@ class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
     memProvider = memLayer.dataProvider()
 
     pixelSize = utils.getRasterLayerByName( self.cmbRasterLayer.currentText() ).rasterUnitsPerPixel()
-    print "PIXEL SIZE", pixelSize
 
     # generate report
     if self.chkGroupZones.isChecked():
@@ -151,7 +147,7 @@ class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
           break
 
       # get count field index
-      idx = memLayer.fieldNameIndex( prefix + "count" )
+      idx = memLayer.fieldNameIndex( "count" )
       print "IDX", idx
 
       # get unique values
@@ -171,17 +167,14 @@ class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
         groupName = v.toString()
         qry = sqlString.arg( groupName )
         fIds = utils.searchInLayer( memLayer, qry )
-        print "FOUND", len( fIds )
-        stats = [ unicode( groupName ), 0 ]
+        stats = [ unicode( groupName ), len( fIds ), 0 ]
         for i in fIds:
           memLayer.featureAtId( i, ft, False, True )
           attrMap = ft.attributeMap()
-          stats[ 1 ] += attrMap[ idx ].toInt()[ 0 ]
-        print "STATS", stats
-        stats[ 1 ] = stats[ 1 ] * pixelSize
-        print "STATS AREA", stats
+          stats[ 2 ] += attrMap[ idx ].toInt()[ 0 ]
+        stats[ 2 ] = float( stats[ 2 ] * pixelSize )
         reportData.append( stats )
-        utils.writeReport( reportPath, reportData )
+      utils.writeReport( reportPath, reportData )
     else:
       pass
 
