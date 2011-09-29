@@ -168,7 +168,6 @@ def writeReport( rptPath, rptData ):
   rpt += "Area"
   rpt += "</th></tr>"
   for row in rptData:
-    print "ROW", row
     rpt += "<tr><td>"
     rpt += QString( row[ 0 ] )
     rpt += "</td><td>"

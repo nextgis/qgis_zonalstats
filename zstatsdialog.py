@@ -46,15 +46,11 @@ class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
     self.closeButton = self.buttonBox.button( QDialogButtonBox.Close )
 
     QObject.connect( self.cmbVectorLayer, SIGNAL( "currentIndexChanged( QString )" ), self.updateFieldList )
-    QObject.connect( self.chkGroupZones, SIGNAL( "stateChanged( int )" ), self.updateGrouping )
     QObject.connect( self.btnBrowse, SIGNAL( "clicked()" ), self.selectReportFile )
 
     self.manageGui()
 
   def manageGui( self ):
-    # disable some controls by default
-    self.cmbGroupField.setEnabled( False )
-
     self.cmbRasterLayer.addItems( utils.getRasterLayersNames() )
     self.cmbVectorLayer.addItems( utils.getVectorLayersNames() )
 
@@ -65,20 +61,6 @@ class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
     for i in fields:
       if fields[ i ].type() in [ QVariant.Int, QVariant.String ]:
         self.cmbGroupField.addItem( fields[ i ].name() )
-
-  def updateGrouping( self, state ):
-    if state == Qt.Checked:
-      self.cmbGroupField.setEnabled( True )
-    else:
-      self.cmbGroupField.setEnabled( False )
-
-  def updateReport( self, state ):
-    if state == Qt.Checked:
-      self.leReportFile.setEnabled( True )
-      self.btnBrowse.setEnabled( True )
-    else:
-      self.leReportFile.setEnabled( False )
-      self.btnBrowse.setEnabled( False )
 
   def selectReportFile( self ):
     lastUsedDir = utils.lastUsedDir()
@@ -178,15 +160,13 @@ class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
     else:
       allAttrs = memProvider.attributeIndexes()
       memLayer.select( allAttrs, QgsRectangle(), False )
+      nameFieldIndex = memLayer.fieldNameIndex( self.cmbGroupField.currentText() )
       while memLayer.nextFeature( ft ):
-        stats = [ "", 1, 0 ]
         attrMap = ft.attributeMap()
-        print "FIELD", attrMap[ idxCount ].toFloat()[ 0 ]
+        stats = [ attrMap[ nameFieldIndex ].toString(), 1, 0 ]
         stats[ 2 ] = attrMap[ idxCount ].toFloat()[ 0 ] * pixelSize
-        print "STATS", stats
         reportData.append( stats )
 
-    print "DATA", reportData
     # save report as HTML
     utils.writeReport( reportPath, reportData )
     memLayer = None
