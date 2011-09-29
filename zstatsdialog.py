@@ -113,9 +113,10 @@ class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
     reportPath = self.leReportFile.text()
 
     memLayer = utils.loadInMemory( vLayer )
+    memProvider = memLayer.dataProvider()
 
-    # for testing (should be removed)
-    #QgsMapLayerRegistry.instance().addMapLayer( memLayer )
+    # get pixel size (need it for area calculation)
+    pixelSize = utils.getRasterLayerByName( self.cmbRasterLayer.currentText() ).rasterUnitsPerPixel()
 
     # TODO: check attribute prefix
     prefix = ""
@@ -125,33 +126,35 @@ class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
     pd = QProgressDialog( self.tr( "Calculating zonal statistics" ), self.tr( "Abort..." ), 0, 0 )
     zs.calculateStatistics( pd )
 
+    # for testing (should be removed)
+    QgsMapLayerRegistry.instance().addMapLayer( memLayer )
+
     # save full statistics to file near the input shapefile
     fi = QFileInfo( vLayer.source() )
     fPath = fi.path() + "/" + fi.completeBaseName() + "_full_stat.csv"
     utils.saveStatsToCSV( memLayer, fPath )
 
-    memProvider = memLayer.dataProvider()
+    # get count field index
+    idxCount = memLayer.fieldNameIndex( "count" )
+    print "IDX", idxCount
 
-    pixelSize = utils.getRasterLayerByName( self.cmbRasterLayer.currentText() ).rasterUnitsPerPixel()
+    reportData = []
+    ft = QgsFeature()
 
     # generate report
     if self.chkGroupZones.isChecked():
-      grpIndex = 0
+      grpFieldIndex = 0
       isString = False
       fieldName = self.cmbGroupField.currentText()
       for k, v in memProvider.fields().iteritems():
         if v.name() == fieldName:
           if v.type() == QVariant.String :
             isString = True
-          grpIndex = k
+          grpFieldIndex = k
           break
 
-      # get count field index
-      idx = memLayer.fieldNameIndex( "count" )
-      print "IDX", idx
-
       # get unique values
-      uniqueValues = memProvider.uniqueValues( grpIndex )
+      uniqueValues = memProvider.uniqueValues( grpFieldIndex )
       allAttrs = memProvider.attributeIndexes()
 
       sqlString = None
@@ -161,8 +164,6 @@ class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
         sqlString = QString( fieldName + " = %1" )
 
       # create zones
-      reportData = []
-      ft = QgsFeature()
       for v in uniqueValues:
         groupName = v.toString()
         qry = sqlString.arg( groupName )
@@ -171,11 +172,21 @@ class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
         for i in fIds:
           memLayer.featureAtId( i, ft, False, True )
           attrMap = ft.attributeMap()
-          stats[ 2 ] += attrMap[ idx ].toInt()[ 0 ]
-        stats[ 2 ] = float( stats[ 2 ] * pixelSize )
+          stats[ 2 ] += attrMap[ idxCount ].toFloat()[ 0 ]
+        stats[ 2 ] = stats[ 2 ] * pixelSize
         reportData.append( stats )
-      utils.writeReport( reportPath, reportData )
     else:
-      pass
+      allAttrs = memProvider.attributeIndexes()
+      memLayer.select( allAttrs, QgsRectangle(), False )
+      while memLayer.nextFeature( ft ):
+        stats = [ "", 1, 0 ]
+        attrMap = ft.attributeMap()
+        print "FIELD", attrMap[ idxCount ].toFloat()[ 0 ]
+        stats[ 2 ] = attrMap[ idxCount ].toFloat()[ 0 ] * pixelSize
+        print "STATS", stats
+        reportData.append( stats )
 
+    print "DATA", reportData
+    # save report as HTML
+    utils.writeReport( reportPath, reportData )
     memLayer = None
