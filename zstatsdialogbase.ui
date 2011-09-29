@@ -76,9 +76,9 @@
     </widget>
    </item>
    <item row="4" column="0">
-    <widget class="QCheckBox" name="chkWriteReport">
+    <widget class="QLabel" name="label_4">
      <property name="text">
-      <string>Write report</string>
+      <string>Save report as</string>
      </property>
     </widget>
    </item>

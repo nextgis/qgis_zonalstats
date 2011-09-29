@@ -47,7 +47,7 @@ class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
 
     QObject.connect( self.cmbVectorLayer, SIGNAL( "currentIndexChanged( QString )" ), self.updateFieldList )
     QObject.connect( self.chkGroupZones, SIGNAL( "stateChanged( int )" ), self.updateGrouping )
-    QObject.connect( self.chkWriteReport, SIGNAL( "stateChanged( int )" ), self.updateReport )
+    #QObject.connect( self.chkWriteReport, SIGNAL( "stateChanged( int )" ), self.updateReport )
     QObject.connect( self.btnBrowse, SIGNAL( "clicked()" ), self.selectReportFile )
 
     self.manageGui()
@@ -55,8 +55,8 @@ class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
   def manageGui( self ):
     # disable some controls by default
     self.cmbGroupField.setEnabled( False )
-    self.leReportFile.setEnabled( False )
-    self.btnBrowse.setEnabled( False )
+    #self.leReportFile.setEnabled( False )
+    #self.btnBrowse.setEnabled( False )
 
     self.cmbRasterLayer.addItems( utils.getRasterLayersNames() )
     self.cmbVectorLayer.addItems( utils.getVectorLayersNames() )
@@ -116,6 +116,7 @@ class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
     rasterPath = utils.getRasterLayerByName( self.cmbRasterLayer.currentText() ).source()
     vLayer = utils.getVectorLayerByName( self.cmbVectorLayer.currentText() )
     prefix = self.leColumnPrefix.text()
+    reportPath = self.leReportFile.text()
 
     memLayer = utils.loadInMemory( vLayer )
 
@@ -134,53 +135,54 @@ class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
 
     memProvider = memLayer.dataProvider()
 
-    # generate report if necessary
-    if self.chkWriteReport.isChecked():
-      if self.chkGroupZones.isChecked():
-        # get field index
-        index = 0
-        isString = False
-        fieldName = self.cmbGroupField.currentText()
-        for k, v in memProvider.fields().iteritems():
-          if v.name() == fieldName:
-            if v.type() == QVariant.String :
-              isString = True
-            index = k
-            break
+    pixelSize = utils.getRasterLayerByName( self.cmbRasterLayer.currentText() ).rasterUnitsPerPixel()
+    print "PIXEL SIZE", pixelSize
 
-        # get statistics fields indexes
-        idx = [ memLayer.fieldNameIndex( prefix + "count" ),
-                memLayer.fieldNameIndex( prefix + "sum" ),
-                memLayer.fieldNameIndex( prefix + "mean" ) ]
-        print "IDX", idx
+    # generate report
+    if self.chkGroupZones.isChecked():
+      grpIndex = 0
+      isString = False
+      fieldName = self.cmbGroupField.currentText()
+      for k, v in memProvider.fields().iteritems():
+        if v.name() == fieldName:
+          if v.type() == QVariant.String :
+            isString = True
+          grpIndex = k
+          break
 
-        # get unique values
-        uniqueValues = memProvider.uniqueValues( index )
-        allAttrs = memProvider.attributeIndexes()
+      # get count field index
+      idx = memLayer.fieldNameIndex( prefix + "count" )
+      print "IDX", idx
 
-        sqlString = None
-        if isString:
-          sqlString = QString( fieldName + " = '%1'")
-        else:
-          sqlString = QString( fieldName + " = %1" )
+      # get unique values
+      uniqueValues = memProvider.uniqueValues( grpIndex )
+      allAttrs = memProvider.attributeIndexes()
 
-        # create zones
-        ft = QgsFeature()
-        for v in uniqueValues:
-          qry = sqlString.arg( v.toString() )
-          fIds = utils.searchInLayer( memLayer, qry )
-          print "FOUND", len( fIds )
-          stats = [ 0, 0, 0 ]
-          for i in fIds:
-            memLayer.featureAtId( i, ft, False, True )
-            attrMap = ft.attributeMap()
-            #print "ATTRS", attrMap[ idx[0] ].toString(), attrMap[ idx[1] ].toString(), attrMap[ idx[2] ].toString()
-            stats[ 0 ] += attrMap[ idx[0] ].toInt()[ 0 ]
-            stats[ 1 ] += attrMap[ idx[1] ].toFloat()[ 0 ]
-            stats[ 2 ] += attrMap[ idx[2] ].toFloat()[ 0 ]
-          stats[ 2 ] = stats[ 2 ] / float( len( fIds ) )
-          print "STATS", stats
+      sqlString = None
+      if isString:
+        sqlString = QString( fieldName + " = '%1'")
       else:
-        pass
+        sqlString = QString( fieldName + " = %1" )
+
+      # create zones
+      reportData = []
+      ft = QgsFeature()
+      for v in uniqueValues:
+        groupName = v.toString()
+        qry = sqlString.arg( groupName )
+        fIds = utils.searchInLayer( memLayer, qry )
+        print "FOUND", len( fIds )
+        stats = [ unicode( groupName ), 0 ]
+        for i in fIds:
+          memLayer.featureAtId( i, ft, False, True )
+          attrMap = ft.attributeMap()
+          stats[ 1 ] += attrMap[ idx ].toInt()[ 0 ]
+        print "STATS", stats
+        stats[ 1 ] = stats[ 1 ] * pixelSize
+        print "STATS AREA", stats
+        reportData.append( stats )
+        utils.writeReport( reportPath, reportData )
+    else:
+      pass
 
     memLayer = None
