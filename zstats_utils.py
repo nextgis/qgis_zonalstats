@@ -172,11 +172,11 @@ def writeReport( rptPath, dataPath, rptData ):
   rpt += "Area"
   rpt += "</th></tr>"
   for row in rptData:
-    rpt += "<tr align=\"center\"><td>"
+    rpt += "<tr><td align=\"center\">"
     rpt += QString( row[ 0 ] )
-    rpt += "</td><td>"
+    rpt += "</td><td align=\"center\">"
     rpt += QString().setNum( row[ 1 ] )
-    rpt += "</td><td>"
+    rpt += "</td><td align=\"center\">"
     rpt += QString().setNum( row[ 2 ] )
     rpt += "</td></tr>"
     writer.writerow( row )
