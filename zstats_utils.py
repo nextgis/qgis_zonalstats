@@ -157,9 +157,6 @@ def searchInLayer( vLayer, searchString ):
   return selectedFeatureIds
 
 def writeReport( rptPath, dataPath, rptData ):
-  fi = QFileInfo( vLayer.source() )
-  csvPath = fi.path() + "/" + fi.completeBaseName() + "_data.csv"
-
   f = open( dataPath, "wb" )
   writer = csv.writer( f )
   writer.writerow( [ "zone_name", "object_count", "area" ] )

@@ -234,5 +234,6 @@ class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
 
     # display report in viewer
     self.teReport.setHtml( rpt )
+    self.progressBar.setValue( 0 )
 
     memLayer = None
