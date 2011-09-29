@@ -156,11 +156,11 @@ def searchInLayer( vLayer, searchString ):
 
   return selectedFeatureIds
 
-def writeReport( rptPath, rptData ):
+def writeReport( rptPath, dataPath, rptData ):
   fi = QFileInfo( vLayer.source() )
   csvPath = fi.path() + "/" + fi.completeBaseName() + "_data.csv"
 
-  f = open( filePath, "wb" )
+  f = open( dataPath, "wb" )
   writer = csv.writer( f )
   writer.writerow( [ "zone_name", "object_count", "area" ] )
 
@@ -203,11 +203,20 @@ def writeReport( rptPath, rptData ):
 
   return rpt
 
-def lastUsedDir():
+def lastUsedReportDir():
   settings = QSettings( "NextGIS", "zstats" )
-  return settings.value( "lastUsedDir", QVariant( "" ) ).toString()
+  return settings.value( "lastUsedReportDir", QVariant( "" ) ).toString()
 
-def setLastUsedDir( lastDir ):
+def setLastUsedReportDir( lastDir ):
   path = QFileInfo( lastDir ).absolutePath()
   settings = QSettings( "NextGIS", "zstats" )
-  settings.setValue( "lastUsedDir", QVariant( path ) )
+  settings.setValue( "lastUsedReportDir", QVariant( path ) )
+
+def lastUsedDataDir():
+  settings = QSettings( "NextGIS", "zstats" )
+  return settings.value( "lastUsedDataDir", QVariant( "" ) ).toString()
+
+def setLastUsedDataDir( lastDir ):
+  path = QFileInfo( lastDir ).absolutePath()
+  settings = QSettings( "NextGIS", "zstats" )
+  settings.setValue( "lastUsedDataDir", QVariant( path ) )

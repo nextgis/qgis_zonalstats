@@ -46,11 +46,16 @@ class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
     self.closeButton = self.buttonBox.button( QDialogButtonBox.Close )
 
     QObject.connect( self.cmbVectorLayer, SIGNAL( "currentIndexChanged( QString )" ), self.updateFieldList )
-    QObject.connect( self.btnBrowse, SIGNAL( "clicked()" ), self.selectReportFile )
+    QObject.connect( self.chkSaveData, SIGNAL( "stateChanged( int )" ), self.updateDataPath )
+    QObject.connect( self.btnSaveReport, SIGNAL( "clicked()" ), self.selectReportFile )
+    QObject.connect( self.btnSaveData, SIGNAL( "clicked()" ), self.selectDataFile )
 
     self.manageGui()
 
   def manageGui( self ):
+    self.leDataFile.setEnabled( False )
+    self.btnSaveData.setEnabled( False )
+
     self.cmbRasterLayer.addItems( utils.getRasterLayersNames() )
     self.cmbVectorLayer.addItems( utils.getVectorLayersNames() )
 
@@ -62,21 +67,51 @@ class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
       if fields[ i ].type() in [ QVariant.Int, QVariant.String ]:
         self.cmbGroupField.addItem( fields[ i ].name() )
 
+  def updateDataPath( self, state ):
+    if state == Qt.Checked:
+      self.leDataFile.setEnabled( True )
+      self.btnSaveData.setEnabled( True )
+    else:
+      self.leDataFile.setEnabled( False )
+      self.btnSaveData.setEnabled( False )
+
   def selectReportFile( self ):
-    lastUsedDir = utils.lastUsedDir()
+    lastUsedDir = utils.lastUsedReportDir()
     fileName = QFileDialog.getSaveFileName( self, self.tr( "Save report" ),
                lastUsedDir, "HTML files (*.html *.HTML *.htm *.HTM)" )
 
     if fileName.isEmpty():
       return
 
-    utils.setLastUsedDir( fileName )
+    utils.setLastUsedReportDir( fileName )
 
     # ensure the user never ommited the extension from the file name
     if ( not fileName.toLower().endsWith( ".htm" ) ) and ( not fileName.toLower().endsWith( ".html" ) ):
       fileName += ".html"
 
     self.leReportFile.setText( fileName )
+
+    # also generate data file path if checkbox not checked
+    if not self.chkSaveData.isChecked():
+      fi = QFileInfo( fileName )
+      dataPath = fi.path() + "/" + fi.completeBaseName() + "_data.csv"
+      self.leDataFile.setText( dataPath )
+
+  def selectDataFile( self ):
+    lastUsedDir = utils.lastUsedDataDir()
+    fileName = QFileDialog.getSaveFileName( self, self.tr( "Save data as" ),
+               lastUsedDir, "CSV files (*.csv *.CSV)" )
+
+    if fileName.isEmpty():
+      return
+
+    utils.setLastUsedDataDir( fileName )
+
+    # ensure the user never ommited the extension from the file name
+    if not fileName.toLower().endsWith( ".csv" ):
+      fileName += ".csv"
+
+    self.leDataFile.setText( fileName )
 
   def accept( self ):
     # check input parameters
@@ -90,12 +125,28 @@ class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
                            self.tr( "Please select vector layer to analyse" ) )
       return
 
+    if self.leReportFile.text().isEmpty():
+      QMessageBox.warning( self, self.tr( "ZStats: Warning" ),
+                           self.tr( "Please select where to save report file" ) )
+      return
+
+    if self.leDataFile.text().isEmpty():
+      QMessageBox.warning( self, self.tr( "ZStats: Warning" ),
+                           self.tr( "Please select where to save data file" ) )
+      return
+
     rasterPath = utils.getRasterLayerByName( self.cmbRasterLayer.currentText() ).source()
     vLayer = utils.getVectorLayerByName( self.cmbVectorLayer.currentText() )
     reportPath = self.leReportFile.text()
+    dataPath = self.leDataFile.text()
+
+    self.progressBar.setRange( 0, 3 )
+    self.progressBar.setValue( 0 )
 
     memLayer = utils.loadInMemory( vLayer )
     memProvider = memLayer.dataProvider()
+
+    self.progressBar.setValue( self.progressBar.value() + 1 )
 
     # get pixel size (need it for area calculation)
     pixelSize = utils.getRasterLayerByName( self.cmbRasterLayer.currentText() ).rasterUnitsPerPixel()
@@ -108,13 +159,22 @@ class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
     pd = QProgressDialog( self.tr( "Calculating zonal statistics" ), self.tr( "Abort..." ), 0, 0 )
     zs.calculateStatistics( pd )
 
+    self.progressBar.setValue( self.progressBar.value() + 1 )
+
+    if pd.wasCanceled():
+      QMessageBox.error( self, self.tr( "ZStats: Error" ),
+                         self.tr( "Hey!.. You abort statistics calculation, so there are no data for analysis. Exiting..." ) )
+      self.progressBar.setValue( 0 )
+      return
+
+
     # for testing (should be removed)
-    QgsMapLayerRegistry.instance().addMapLayer( memLayer )
+    #QgsMapLayerRegistry.instance().addMapLayer( memLayer )
 
     # save full statistics to file near the input shapefile
-    fi = QFileInfo( vLayer.source() )
-    fPath = fi.path() + "/" + fi.completeBaseName() + "_full_stat.csv"
-    utils.saveStatsToCSV( memLayer, fPath )
+    #fi = QFileInfo( vLayer.source() )
+    #fPath = fi.path() + "/" + fi.completeBaseName() + "_full_stat.csv"
+    #utils.saveStatsToCSV( memLayer, fPath )
 
     # get count field index
     idxCount = memLayer.fieldNameIndex( "count" )
@@ -168,7 +228,9 @@ class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
         reportData.append( stats )
 
     # save report as HTML
-    rpt = utils.writeReport( reportPath, reportData )
+    rpt = utils.writeReport( reportPath, dataPath, reportData )
+
+    self.progressBar.setValue( self.progressBar.value() + 1 )
 
     # display report in viewer
     self.teReport.setHtml( rpt )
