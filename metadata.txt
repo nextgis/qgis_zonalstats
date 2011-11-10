@@ -1,0 +1,7 @@
+[general]
+name=ZStats
+description=Extended zonal statistics and report generation
+version=Version 0.2.11
+authorName=Alexander Bruy
+icon=icons/zstats.png
+qgisMinimumVersion=1.0.0
