@@ -181,17 +181,17 @@ def searchInLayer( vLayer, searchString ):
 
   return selectedFeatureIds
 
-def writeReport( rptPath, dataPath, rptData ):
+def writeReport( rptPath, dataPath, rptData, fieldName ):
   f = open( dataPath, "wb" )
   #writer = csv.writer( f )
   writer = UnicodeWriter( f )
-  writer.writerow( [ "zone_name", "object_count", "area" ] )
+  writer.writerow( [ fieldName, "object_count", "area" ] )
 
   rpt = QString( "<html><body>" )
 
   rpt += "<table width=\"100%\" border=\"1\">"
   rpt += "<tr><th>"
-  rpt += "Zone name"
+  rpt += QString( fieldName )
   rpt += "</th><th>"
   rpt += "Object count"
   rpt += "</th><th>"

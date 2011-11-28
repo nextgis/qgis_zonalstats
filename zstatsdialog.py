@@ -169,7 +169,7 @@ class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
 
 
     # for testing (should be removed)
-    #QgsMapLayerRegistry.instance().addMapLayer( memLayer )
+    QgsMapLayerRegistry.instance().addMapLayer( memLayer )
 
     # save full statistics to file near the input shapefile
     #fi = QFileInfo( vLayer.source() )
@@ -177,8 +177,9 @@ class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
     #utils.saveStatsToCSV( memLayer, fPath )
 
     # get count field index
-    idxCount = memLayer.fieldNameIndex( "count" )
-    #print "IDX", idxCount
+    #idxCount = memLayer.fieldNameIndex( "count" )
+    idxCount = memLayer.fieldNameIndex( "sum" )
+    print "IDX", idxCount
 
     reportData = []
     ft = QgsFeature()
@@ -228,7 +229,7 @@ class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
         reportData.append( stats )
 
     # save report as HTML
-    rpt = utils.writeReport( reportPath, dataPath, reportData )
+    rpt = utils.writeReport( reportPath, dataPath, reportData, unicode( self.cmbGroupField.currentText() ) )
 
     self.progressBar.setValue( self.progressBar.value() + 1 )
 
