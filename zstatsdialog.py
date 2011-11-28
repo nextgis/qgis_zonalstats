@@ -178,7 +178,7 @@ class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
 
     # get count field index
     idxCount = memLayer.fieldNameIndex( "count" )
-    print "IDX", idxCount
+    #print "IDX", idxCount
 
     reportData = []
     ft = QgsFeature()
@@ -210,12 +210,12 @@ class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
         groupName = v.toString()
         qry = sqlString.arg( groupName )
         fIds = utils.searchInLayer( memLayer, qry )
-        stats = [ unicode( groupName ), len( fIds ), 0 ]
+        stats = [ unicode( groupName ), str( len( fIds ) ), 0 ]
         for i in fIds:
           memLayer.featureAtId( i, ft, False, True )
           attrMap = ft.attributeMap()
           stats[ 2 ] += attrMap[ idxCount ].toFloat()[ 0 ]
-        stats[ 2 ] = stats[ 2 ] * pixelSize
+        stats[ 2 ] = str( stats[ 2 ] * pixelSize )
         reportData.append( stats )
     else:
       allAttrs = memProvider.attributeIndexes()
@@ -223,8 +223,8 @@ class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
       nameFieldIndex = memLayer.fieldNameIndex( self.cmbGroupField.currentText() )
       while memLayer.nextFeature( ft ):
         attrMap = ft.attributeMap()
-        stats = [ attrMap[ nameFieldIndex ].toString(), 1, 0 ]
-        stats[ 2 ] = attrMap[ idxCount ].toFloat()[ 0 ] * pixelSize
+        stats = [ unicode( attrMap[ nameFieldIndex ].toString() ), "1", "0" ]
+        stats[ 2 ] = str( attrMap[ idxCount ].toFloat()[ 0 ] * pixelSize )
         reportData.append( stats )
 
     # save report as HTML

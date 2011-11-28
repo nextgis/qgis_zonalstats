@@ -34,6 +34,31 @@ from qgis.gui import *
 from osgeo import gdal
 
 import csv
+import codecs, cStringIO
+
+class UnicodeWriter:
+  def __init__(self, f, dialect=csv.excel, encoding="utf-8", **kwds):
+    # Redirect output to a queue
+    self.queue = cStringIO.StringIO()
+    self.writer = csv.writer(self.queue, dialect=dialect, **kwds)
+    self.stream = f
+    self.encoder = codecs.getincrementalencoder(encoding)()
+
+  def writerow(self, row):
+    self.writer.writerow([s.encode("utf-8") for s in row])
+    # Fetch UTF-8 output from the queue ...
+    data = self.queue.getvalue()
+    data = data.decode("utf-8")
+    # ... and reencode it into the target encoding
+    data = self.encoder.encode(data)
+    # write to the target stream
+    self.stream.write(data)
+    # empty queue
+    self.queue.truncate(0)
+
+  def writerows(self, rows):
+    for row in rows:
+      self.writerow(row)
 
 def getVectorLayerByName( layerName ):
   layerMap = QgsMapLayerRegistry.instance().mapLayers()
@@ -129,7 +154,7 @@ def saveStatsToCSV( mLayer, filePath ):
 
 def searchInLayer( vLayer, searchString ):
   search = QgsExpression( searchString )
-  print "SQL", searchString
+  #print "SQL", searchString
   allAttrs = vLayer.dataProvider().attributeIndexes()
 
   if search.hasParserError():
@@ -158,7 +183,8 @@ def searchInLayer( vLayer, searchString ):
 
 def writeReport( rptPath, dataPath, rptData ):
   f = open( dataPath, "wb" )
-  writer = csv.writer( f )
+  #writer = csv.writer( f )
+  writer = UnicodeWriter( f )
   writer.writerow( [ "zone_name", "object_count", "area" ] )
 
   rpt = QString( "<html><body>" )
@@ -175,10 +201,11 @@ def writeReport( rptPath, dataPath, rptData ):
     rpt += "<tr><td align=\"center\">"
     rpt += QString( row[ 0 ] )
     rpt += "</td><td align=\"center\">"
-    rpt += QString().setNum( row[ 1 ] )
+    rpt += QString().setNum( int( row[ 1 ] ) )
     rpt += "</td><td align=\"center\">"
-    rpt += QString().setNum( row[ 2 ] )
+    rpt += QString().setNum( float( row[ 2 ] ) )
     rpt += "</td></tr>"
+    #print row
     writer.writerow( row )
   rpt += "</table>"
   rpt += "</body></html>"
