@@ -83,15 +83,24 @@ class ZStatsPlugin( object ):
     QObject.connect( self.actionRun, SIGNAL( "triggered()" ), self.run )
     QObject.connect( self.actionAbout, SIGNAL( "triggered()" ), self.about )
 
-    self.iface.addPluginToMenu( "ZStats", self.actionRun )
-    self.iface.addPluginToMenu( "ZStats", self.actionAbout )
-
-    self.iface.addToolBarIcon( self.actionRun )
+    if hasattr( self.iface, "addPluginToRasterMenu" ):
+      self.iface.addPluginToRasterMenu( QCoreApplication.translate( "ZStats", "ZStats" ), self.actionRun )
+      self.iface.addPluginToRasterMenu( QCoreApplication.translate( "ZStats", "ZStats" ), self.actionAbout )
+      self.iface.addRasterToolBarIcon( self.actionRun )
+    else:
+      self.iface.addPluginToMenu( QCoreApplication.translate( "ZStats", "ZStats" ), self.actionRun )
+      self.iface.addPluginToMenu( QCoreApplication.translate( "ZStats", "ZStats" ), self.actionAbout )
+      self.iface.addToolBarIcon( self.actionRun )
 
   def unload( self ):
-    self.iface.removePluginMenu( "ZStats", self.actionRun )
-    self.iface.removePluginMenu( "ZStats", self.actionAbout )
-    self.iface.removeToolBarIcon( self.actionRun )
+    if hasattr( self.iface, "addPluginToRasterMenu" ):
+      self.iface.removePluginRasterMenu( QCoreApplication.translate( "ZStats", "ZStats" ), self.actionRun )
+      self.iface.removePluginRasterMenu( QCoreApplication.translate( "ZStats", "ZStats" ), self.actionAbout )
+      self.iface.removeRasterToolBarIcon( self.actionRun )
+    else:
+      self.iface.removePluginMenu( QCoreApplication.translate( "ZStats", "ZStats" ), self.actionRun )
+      self.iface.removePluginMenu( QCoreApplication.translate( "ZStats", "ZStats" ), self.actionAbout )
+      self.iface.removeToolBarIcon( self.actionRun )
 
   def about( self ):
     dlgAbout = QDialog()

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-mVersion = "0.0.1"
+mVersion = "0.0.2"
 
 #******************************************************************************
 #
@@ -32,6 +32,9 @@ def name():
 
 def description():
 	return "Extended zonal statistics and report generation"
+
+def category():
+	return "Raster"
 
 def version():
 	return mVersion
