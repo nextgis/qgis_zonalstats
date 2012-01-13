@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-mVersion = "0.0.2"
+mVersion = "0.0.3"
 
 #******************************************************************************
 #
@@ -8,7 +8,7 @@ mVersion = "0.0.2"
 # ---------------------------------------------------------
 # Extended zonal statistics and report generation
 #
-# Copyright (C) 2010 Alexander Bruy (alexander.bruy@gmail.com)
+# Copyright (C) 2011 Alexander Bruy (alexander.bruy@nextgis.org)
 #
 # This source is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -28,27 +28,27 @@ mVersion = "0.0.2"
 #******************************************************************************
 
 def name():
-	return "ZStats"
+  return "ZonalStats"
 
 def description():
-	return "Extended zonal statistics and report generation"
+  return "Extended zonal statistics and report generation"
 
 def category():
-	return "Raster"
+  return "Raster"
 
 def version():
-	return mVersion
+  return mVersion
 
 def qgisMinimumVersion():
-	return "1.0"
+  return "1.7.2"
 
 def authorName():
-	return "Alexander Bruy"
+  return "Alexander Bruy (NextGIS)"
 
 def icon():
-	return "icons/zstats.png"
+  return "icons/zonalstats.png"
 
 def classFactory( iface ):
-	from zstats import ZStatsPlugin
-	return ZStatsPlugin( iface )
+  from zonalstats import ZonalStatsPlugin
+  return ZonalStatsPlugin( iface )
 

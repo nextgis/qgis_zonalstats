@@ -2,11 +2,11 @@
 
 #******************************************************************************
 #
-# ZStats
+# ZonalStats
 # ---------------------------------------------------------
 # Extended zonal statistics and report generation
 #
-# Copyright (C) 2011 Alexander Bruy (alexander.bruy@gmail.com)
+# Copyright (C) 2011 Alexander Bruy (alexander.bruy@nextgis.org)
 #
 # This source is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -31,13 +31,13 @@ from PyQt4.QtGui import *
 from qgis.core import *
 from qgis.gui import *
 
-import zstatsdialog
+import zonalstatsdialog
 
 from __init__ import mVersion
 
 import resources_rc
 
-class ZStatsPlugin( object ):
+class ZonalStatsPlugin( object ):
   def __init__( self, iface ):
     self.iface = iface
     self.iface = iface
@@ -46,9 +46,11 @@ class ZStatsPlugin( object ):
     except:
       self.QgisVersion = unicode( QGis.qgisVersion )[ 0 ]
 
+    print "**** VERSION", self.QgisVersion
+
     # For i18n support
-    userPluginPath = QFileInfo( QgsApplication.qgisUserDbFilePath() ).path() + "/python/plugins/zstats"
-    systemPluginPath = QgsApplication.prefixPath() + "/python/plugins/zstats"
+    userPluginPath = QFileInfo( QgsApplication.qgisUserDbFilePath() ).path() + "/python/plugins/zonalstats"
+    systemPluginPath = QgsApplication.prefixPath() + "/python/plugins/zonalstats"
 
     overrideLocale = QSettings().value( "locale/overrideFlag", QVariant( False ) ).toBool()
     if not overrideLocale:
@@ -57,9 +59,9 @@ class ZStatsPlugin( object ):
       localeFullName = QSettings().value( "locale/userLocale", QVariant( "" ) ).toString()
 
     if QFileInfo( userPluginPath ).exists():
-      translationPath = userPluginPath + "/i18n/zstats_" + localeFullName + ".qm"
+      translationPath = userPluginPath + "/i18n/zonalstats_" + localeFullName + ".qm"
     else:
-      translationPath = systemPluginPath + "/i18n/zstats_" + localeFullName + ".qm"
+      translationPath = systemPluginPath + "/i18n/zonalstats_" + localeFullName + ".qm"
 
     self.localePath = translationPath
     if QFileInfo( self.localePath ).exists():
@@ -69,54 +71,53 @@ class ZStatsPlugin( object ):
 
   def initGui( self ):
     # FIXME: need to adjust version check
-    if int( self.QgisVersion ) < 1:
-      QMessageBox.warning( self.iface.mainWindow(), "ZStats",
-                           QCoreApplication.translate( "ZStats", "Quantum GIS version detected: " ) + unicode( self.QgisVersion ) + ".xx\n" +
-                           QCoreApplication.translate( "ZStats", "This version of ZStats requires at least QGIS version 1.0.0\nPlugin will not be enabled." ) )
+    if int( self.QgisVersion ) < 10702:
+      QMessageBox.warning( self.iface.mainWindow(), "ZonalStats",
+                           QCoreApplication.translate( "ZonalStats", "Quantum GIS version detected: " ) + unicode( self.QgisVersion ) + ".xx\n" +
+                           QCoreApplication.translate( "ZonalStats", "This version of ZonalStats requires at least QGIS version 1.7.2\nPlugin will not be enabled." ) )
       return None
 
-    self.actionRun = QAction( QIcon( ":icons/zstats.png" ), "ZStats", self.iface.mainWindow() )
-    self.actionRun.setStatusTip( QCoreApplication.translate( "ZStats", "Extended zonal statistics and report generation" ) )
-    self.actionRun.setWhatsThis( QCoreApplication.translate( "ZStats", "Extended zonal statistics" ) )
+    self.actionRun = QAction( QIcon( ":icons/zonalstats.png" ), "ZonalStats", self.iface.mainWindow() )
+    self.actionRun.setStatusTip( QCoreApplication.translate( "ZonalStats", "Extended zonal statistics and report generation" ) )
+    self.actionRun.setWhatsThis( QCoreApplication.translate( "ZonalStats", "Extended zonal statistics" ) )
     self.actionAbout = QAction( QIcon( ":icons/about.png" ), "About", self.iface.mainWindow() )
 
     QObject.connect( self.actionRun, SIGNAL( "triggered()" ), self.run )
     QObject.connect( self.actionAbout, SIGNAL( "triggered()" ), self.about )
 
     if hasattr( self.iface, "addPluginToRasterMenu" ):
-      self.iface.addPluginToRasterMenu( QCoreApplication.translate( "ZStats", "ZStats" ), self.actionRun )
-      self.iface.addPluginToRasterMenu( QCoreApplication.translate( "ZStats", "ZStats" ), self.actionAbout )
+      self.iface.addPluginToRasterMenu( QCoreApplication.translate( "ZonalStats", "ZonalStats" ), self.actionRun )
+      self.iface.addPluginToRasterMenu( QCoreApplication.translate( "ZonalStats", "ZonalStats" ), self.actionAbout )
       self.iface.addRasterToolBarIcon( self.actionRun )
     else:
-      self.iface.addPluginToMenu( QCoreApplication.translate( "ZStats", "ZStats" ), self.actionRun )
-      self.iface.addPluginToMenu( QCoreApplication.translate( "ZStats", "ZStats" ), self.actionAbout )
+      self.iface.addPluginToMenu( QCoreApplication.translate( "ZonalStats", "ZonalStats" ), self.actionRun )
+      self.iface.addPluginToMenu( QCoreApplication.translate( "ZonalStats", "ZonalStats" ), self.actionAbout )
       self.iface.addToolBarIcon( self.actionRun )
 
   def unload( self ):
     if hasattr( self.iface, "addPluginToRasterMenu" ):
-      self.iface.removePluginRasterMenu( QCoreApplication.translate( "ZStats", "ZStats" ), self.actionRun )
-      self.iface.removePluginRasterMenu( QCoreApplication.translate( "ZStats", "ZStats" ), self.actionAbout )
+      self.iface.removePluginRasterMenu( QCoreApplication.translate( "ZonalStats", "ZonalStats" ), self.actionRun )
+      self.iface.removePluginRasterMenu( QCoreApplication.translate( "ZonalStats", "ZonalStats" ), self.actionAbout )
       self.iface.removeRasterToolBarIcon( self.actionRun )
     else:
-      self.iface.removePluginMenu( QCoreApplication.translate( "ZStats", "ZStats" ), self.actionRun )
-      self.iface.removePluginMenu( QCoreApplication.translate( "ZStats", "ZStats" ), self.actionAbout )
+      self.iface.removePluginMenu( QCoreApplication.translate( "ZonalStats", "ZonalStats" ), self.actionRun )
+      self.iface.removePluginMenu( QCoreApplication.translate( "ZonalStats", "ZonalStats" ), self.actionAbout )
       self.iface.removeToolBarIcon( self.actionRun )
 
   def about( self ):
     dlgAbout = QDialog()
-    dlgAbout.setWindowTitle( QApplication.translate( "ZStats", "About ZStats", "Window title" ) )
+    dlgAbout.setWindowTitle( QApplication.translate( "ZonalStats", "About ZonalStats", "Window title" ) )
     lines = QVBoxLayout( dlgAbout )
-    title = QLabel( QApplication.translate( "ZStats", "<b>ZStats</b>" ) )
+    title = QLabel( QApplication.translate( "ZonalStats", "<b>ZonalStats</b>" ) )
     title.setAlignment( Qt.AlignHCenter | Qt.AlignVCenter )
     lines.addWidget( title )
-    version = QLabel( QApplication.translate( "ZStats", "Version: %1" ).arg( mVersion ) )
+    version = QLabel( QApplication.translate( "ZonalStats", "Version: %1" ).arg( mVersion ) )
     version.setAlignment( Qt.AlignHCenter | Qt.AlignVCenter )
     lines.addWidget( version )
-    lines.addWidget( QLabel( QApplication.translate( "ZStats", "Extended zonal statistics and report generation" ) ) )
-    lines.addWidget( QLabel( QApplication.translate( "ZStats", "<b>Developers:</b>" ) ) )
+    lines.addWidget( QLabel( QApplication.translate( "ZonalStats", "Extended zonal statistics and report generation" ) ) )
+    lines.addWidget( QLabel( QApplication.translate( "ZonalStats", "<b>Developers:</b>" ) ) )
     lines.addWidget( QLabel( "  Alexander Bruy" ) )
-    lines.addWidget( QLabel( "  Maxim Dubinin" ) )
-    lines.addWidget( QLabel( QApplication.translate( "ZStats", "<b>Homepage:</b>") ) )
+    lines.addWidget( QLabel( QApplication.translate( "ZonalStats", "<b>Homepage:</b>") ) )
 
     overrideLocale = QSettings().value( "locale/overrideFlag", QVariant( False ) ).toBool()
     if not overrideLocale:
@@ -126,20 +127,19 @@ class ZStatsPlugin( object ):
 
     localeShortName = localeFullName[ 0:2 ]
     if localeShortName in [ "ru", "uk" ]:
-      link = QLabel( "<a href=\"http://gis-lab.info/qa/zstats.html\">http://gis-lab.info/qa/zstats.html</a>" )
+      link = QLabel( "<a href=\"http://gis-lab.info/qa/zonalstats-qgis.html\">http://gis-lab.info/qa/zonalstats-qgis.html</a>" )
     else:
-      link = QLabel( "<a href=\"http://gis-lab.info/qa/zstats-eng.html\">http://gis-lab.info/qa/zstats-eng.html</a>" )
+      link = QLabel( "<a href=\"http://gis-lab.info/qa/zonalstats-qgis.html\">http://gis-lab.info/qa/zonalstats-qgis.html</a>" )
 
     link.setOpenExternalLinks( True )
     lines.addWidget( link )
 
-    btnClose = QPushButton( QApplication.translate( "ZStats", "Close" ) )
+    btnClose = QPushButton( QApplication.translate( "ZonalStats", "Close" ) )
     lines.addWidget( btnClose )
     QObject.connect( btnClose, SIGNAL( "clicked()" ), dlgAbout, SLOT( "close()" ) )
 
     dlgAbout.exec_()
 
   def run( self ):
-    dlg = zstatsdialog.ZStatsDialog( self.iface )
+    dlg = zonalstatsdialog.ZonalStatsDialog( self.iface )
     dlg.exec_()
-

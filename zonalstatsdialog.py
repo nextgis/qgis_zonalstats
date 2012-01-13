@@ -2,11 +2,11 @@
 
 #******************************************************************************
 #
-# ZStats
+# ZonalStats
 # ---------------------------------------------------------
 # Extended zonal statistics and report generation
 #
-# Copyright (C) 2011 Alexander Bruy (alexander.bruy@gmail.com)
+# Copyright (C) 2011 Alexander Bruy (alexander.bruy@nextgis.org)
 #
 # This source is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -32,11 +32,11 @@ from qgis.core import *
 from qgis.gui import *
 from qgis.analysis import *
 
-import zstats_utils as utils
+import zonalstats_utils as utils
 
-from ui_zstatsdialogbase import Ui_ZStatsDialogBase
+from ui_zonalstatsdialogbase import Ui_ZonalStatsDialogBase
 
-class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
+class ZonalStatsDialog( QDialog, Ui_ZonalStatsDialogBase ):
   def __init__( self, iface ):
     QDialog.__init__( self )
     self.setupUi( self )
@@ -116,22 +116,22 @@ class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
   def accept( self ):
     # check input parameters
     if self.cmbRasterLayer.currentIndex() == -1:
-      QMessageBox.warning( self, self.tr( "ZStats: Warning" ),
+      QMessageBox.warning( self, self.tr( "ZonalStats: Warning" ),
                            self.tr( "Please select raster layer to analyse" ) )
       return
 
     if self.cmbVectorLayer.currentIndex()  == -1:
-      QMessageBox.warning( self, self.tr( "ZStats: Warning" ),
+      QMessageBox.warning( self, self.tr( "ZonalStats: Warning" ),
                            self.tr( "Please select vector layer to analyse" ) )
       return
 
     if self.leReportFile.text().isEmpty():
-      QMessageBox.warning( self, self.tr( "ZStats: Warning" ),
+      QMessageBox.warning( self, self.tr( "ZonalStats: Warning" ),
                            self.tr( "Please select where to save report file" ) )
       return
 
     if self.leDataFile.text().isEmpty():
-      QMessageBox.warning( self, self.tr( "ZStats: Warning" ),
+      QMessageBox.warning( self, self.tr( "ZonalStats: Warning" ),
                            self.tr( "Please select where to save data file" ) )
       return
 
@@ -162,7 +162,7 @@ class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
     self.progressBar.setValue( self.progressBar.value() + 1 )
 
     if pd.wasCanceled():
-      QMessageBox.error( self, self.tr( "ZStats: Error" ),
+      QMessageBox.error( self, self.tr( "ZonalStats: Error" ),
                          self.tr( "Hey!.. You abort statistics calculation, so there are no data for analysis. Exiting..." ) )
       self.progressBar.setValue( 0 )
       return
@@ -179,7 +179,6 @@ class ZStatsDialog( QDialog, Ui_ZStatsDialogBase ):
     # get count field index
     #idxCount = memLayer.fieldNameIndex( "count" )
     idxCount = memLayer.fieldNameIndex( "sum" )
-    print "IDX", idxCount
 
     reportData = []
     ft = QgsFeature()

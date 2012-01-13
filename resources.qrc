@@ -1,6 +1,6 @@
 <RCC>
   <qresource>
-    <file>icons/zstats.png</file>
+    <file>icons/zonalstats.png</file>
     <file>icons/about.png</file>
   </qresource>
 </RCC>
