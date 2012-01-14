@@ -167,10 +167,6 @@ class ZonalStatsDialog( QDialog, Ui_ZonalStatsDialogBase ):
       self.progressBar.setValue( 0 )
       return
 
-
-    # for testing (should be removed)
-    QgsMapLayerRegistry.instance().addMapLayer( memLayer )
-
     # save full statistics to file near the input shapefile
     #fi = QFileInfo( vLayer.source() )
     #fPath = fi.path() + "/" + fi.completeBaseName() + "_full_stat.csv"

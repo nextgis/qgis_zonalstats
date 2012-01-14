@@ -2,7 +2,7 @@
 name=ZonalStats
 description=Extended zonal statistics and report generation
 category=Raster
-version=Version 0.0.3
+version=Version 0.0.4
 authorName=Alexander Bruy (NextGIS)
 icon=icons/zonalstats.png
 qgisMinimumVersion=1.7.2

@@ -129,7 +129,7 @@ class ZonalStatsPlugin( object ):
     if localeShortName in [ "ru", "uk" ]:
       link = QLabel( "<a href=\"http://gis-lab.info/qa/zonalstats-qgis.html\">http://gis-lab.info/qa/zonalstats-qgis.html</a>" )
     else:
-      link = QLabel( "<a href=\"http://gis-lab.info/qa/zonalstats-qgis.html\">http://gis-lab.info/qa/zonalstats-qgis.html</a>" )
+      link = QLabel( "<a href=\"http://gis-lab.info/qa/zonalstats-qgis-eng.html\">http://gis-lab.info/qa/zonalstats-qgis-eng.html</a>" )
 
     link.setOpenExternalLinks( True )
     lines.addWidget( link )
