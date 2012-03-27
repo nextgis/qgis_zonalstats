@@ -10,16 +10,21 @@ RES_PATH=.
 RES_SOURCES=$(wildcard $(RES_PATH)/*.qrc)
 RES_FILES=$(patsubst $(RES_PATH)/%.qrc, $(RES_PATH)/%_rc.py, $(RES_SOURCES))
 
+PRO_PATH=.
+PRO_FILES=$(wildcard $(PRO_PATH)/*.pro)
+
 ALL_FILES= ${RES_FILES} ${UI_FILES} ${LANG_FILES}
 
 all: $(ALL_FILES)
 
 ui: $(UI_FILES)
 
+ts: $(PRO_FILES)
+	pylupdate4 -verbose $<
+
 lang: $(LANG_FILES)
 
 res: $(RES_FILES)
-
 
 $(UI_FILES): $(UI_PATH)/ui_%.py: $(UI_PATH)/%.ui
 	pyuic4 -o $@ $<
@@ -30,9 +35,13 @@ $(LANG_FILES): $(LANG_PATH)/%.qm: $(LANG_PATH)/%.ts
 $(RES_FILES): $(RES_PATH)/%_rc.py: $(RES_PATH)/%.qrc
 	pyrcc4 -o $@ $<
 
-
 clean:
 	rm -f $(ALL_FILES)
+	rm -f *.pyc
 
 package:
-	cd .. && rm -f GdalTools.zip && zip -r GdalTools.experimental.zip GdalTools -x \*.svn* -x \*.pyc -x \*~ -x \*entries\* -x \*.git\*
+	cd .. && rm -f *.zip && zip -r zonalstats.experimental.zip zonalstats -x \*.pyc -x \*~ -x \*.git\*
+	mv ../zonalstats.experimental.zip .
+
+upload:
+	plugin_uploader.py zonalstats.experimental.zip
